@@ -9,7 +9,11 @@ arcpy.env.overwriteOutput = True
 log_obj = utility.Logger(config.log_file)
 
 
-def make_hazard_area(slope_input, output_gdb):
+def make_hazard_area(slope, output_gdb):  # slope = eg 20, 25 etc
+
+    slope_input = config.slope_source_dict[slope]
+
+    log_obj.info("Hazard Area Creation - Process Started - using {}% slope".format(slope))
     log_obj.info("Hazard Area Creation - Process Started - using {}".format(slope_input))
     log_obj.info("Hazard Area Creation - Intersecting".format())
     sect = arcpy.Intersect_analysis([slope_input,
@@ -37,7 +41,7 @@ def make_hazard_area(slope_input, output_gdb):
 
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
     # TODO - add variable instead of hard coding percent value - have variable reference the comparable slope input (dict?)
-    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy, r"in_memory\grid_fl", "pcnt_area > 20")
+    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy, r"in_memory\grid_fl", "pcnt_area > {}".format(slope))
     log_obj.info("Hazard Area Creation - Merging slope grids and landslide".format())
     merge = arcpy.Merge_management([grid_fl, config.landslide_hazard_copy], r"in_memory\merge")
     log_obj.info("Hazard Area Creation - Dissolving and saving poly result".format())
