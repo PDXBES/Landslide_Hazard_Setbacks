@@ -43,6 +43,6 @@ lidar_BE_DEM_raster = arcpy.sa.Raster(lidar_BE_DEM_raw)
 flow_dir_BE_2019_raster = arcpy.sa.Raster(flow_dir_BE_2019_raw)
 
 slope_source_dict = {
-    20: slope_20pcnt_nowater_copy,
-    25: slope_25pcnt_nowater_copy
+    20: [slope_20pcnt_nowater_copy, output_20pcnt_gdb],
+    25: [slope_25pcnt_nowater_copy, output_25pcnt_gdb]
 }

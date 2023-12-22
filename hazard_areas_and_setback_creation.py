@@ -8,10 +8,10 @@ arcpy.env.overwriteOutput = True
 
 log_obj = utility.Logger(config.log_file)
 
+def make_hazard_area(slope):  # slope = eg 20, 25 etc
 
-def make_hazard_area(slope, output_gdb):  # slope = eg 20, 25 etc
-
-    slope_input = config.slope_source_dict[slope]
+    slope_input = config.slope_source_dict[slope][0]
+    output_gdb = config.slope_source_dict[slope][1]
 
     log_obj.info("Hazard Area Creation - Process Started - using {}% slope".format(slope))
     log_obj.info("Hazard Area Creation - Process Started - using {}".format(slope_input))
@@ -36,12 +36,13 @@ def make_hazard_area(slope, output_gdb):  # slope = eg 20, 25 etc
 
     # output for QC - not required for process
     name = "grid_for_" + os.path.basename(str(slope_input))
-    fullname = os.path.join(r"C:\temp_work\working.gdb", name)
+    fullname = os.path.join(output_gdb, name)
     arcpy.CopyFeatures_management(config.grid_100ft_COP_copy, fullname)
 
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
-    # TODO - add variable instead of hard coding percent value - have variable reference the comparable slope input (dict?)
-    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy, r"in_memory\grid_fl", "pcnt_area > {}".format(slope))
+    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy,
+                                                r"in_memory\grid_fl",
+                                                "pcnt_area > {}".format(slope))
     log_obj.info("Hazard Area Creation - Merging slope grids and landslide".format())
     merge = arcpy.Merge_management([grid_fl, config.landslide_hazard_copy], r"in_memory\merge")
     log_obj.info("Hazard Area Creation - Dissolving and saving poly result".format())
@@ -107,15 +108,19 @@ def create_setback(output_gdb, setback_distance):
 
     log_obj.info("Setback Area Creation - Process Complete - output to {}".format(output_gdb))
 
+
 try:
 
     # uncomment and run them all if you want a full refresh
+    # per Henry (12/20/23) the result using 25% slope input with a 100' setback is the main product
 
-    make_hazard_area(config.slope_20pcnt_nowater_copy, config.output_20pcnt_gdb)
-    make_hazard_area(config.slope_25pcnt_nowater_copy, config.output_25pcnt_gdb)
+    #make_hazard_area(20)
+    make_hazard_area(25)
 
-    create_setback(config.output_20pcnt_gdb, 100)
-    create_setback(config.output_25pcnt_gdb, 50)
+    #create_setback(config.output_20pcnt_gdb, 100)
+    #create_setback(config.output_25pcnt_gdb, 50)
+
+    create_setback(config.output_25pcnt_gdb, 100)
 
 except Exception as e:
     arcpy.ExecuteError()
