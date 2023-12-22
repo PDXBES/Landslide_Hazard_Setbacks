@@ -34,6 +34,8 @@ slope_25pcnt_nowater_fl = arcpy.MakeFeatureLayer_management(slope_25pcnt_raw, r"
 
 slope_20pcnt_nowater_copy = arcpy.CopyFeatures_management(slope_20pcnt_nowater_fl, r"in_memory\slope_20pcnt_nowater_copy")
 slope_25pcnt_nowater_copy = arcpy.CopyFeatures_management(slope_25pcnt_nowater_fl, r"in_memory\slope_25pcnt_nowater_copy")
+#TODO - generate 50pcnt_nowater_copy
+
 landslide_hazard_copy = arcpy.CopyFeatures_management(landslide_hazard_raw, r"in_memory\landslide_hazard_copy")
 grid_100ft_COP_copy = arcpy.CopyFeatures_management(grid_100ft_COP_raw, r"in_memory\grid_100ft_COP_copy")
 

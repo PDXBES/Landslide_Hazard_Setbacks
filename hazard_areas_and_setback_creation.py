@@ -16,20 +16,27 @@ def make_hazard_area(slope_input, output_gdb):
                                      config.grid_100ft_COP_copy],
                                     r"in_memory\sect")
     log_obj.info("Hazard Area Creation - Dissolving".format())
-    diss = arcpy.Dissolve_management(sect, r"in_memory\diss", "Description")
+    diss = arcpy.Dissolve_management(sect, r"in_memory\diss", "Description", '', 'MULTI_PART')
     log_obj.info("Hazard Area Creation - Adding fields".format())
-    arcpy.AddGeometryAttributes_management(diss, "AREA", "FEET_US")
+    arcpy.AddGeometryAttributes_management(diss, "AREA", "", "SQUARE_FEET_US", 2913) # adds POLY_AREA field
     arcpy.AddField_management(diss, "pcnt_area", "DOUBLE")
     arcpy.AddField_management(config.grid_100ft_COP_copy, "pcnt_area", "DOUBLE")
     log_obj.info("Hazard Area Creation - Calcing pcnt_area".format())
-    utility.calculate_pcnt_area_field(diss)
+    utility.calculate_pcnt_area_field(diss) # calc pcnt_area on the dissolved features, then transfer value to grid
     utility.get_and_assign_field_value_from_dict(diss,
                                                  'Description',
                                                  'pcnt_area',
                                                  config.grid_100ft_COP_copy,
                                                  'Description',
                                                  'pcnt_area')
+
+    # output for QC - not required for process
+    name = "grid_for_" + os.path.basename(str(slope_input))
+    fullname = os.path.join(r"C:\temp_work\working.gdb", name)
+    arcpy.CopyFeatures_management(config.grid_100ft_COP_copy, fullname)
+
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
+    # TODO - add variable instead of hard coding percent value - have variable reference the comparable slope input (dict?)
     grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy, r"in_memory\grid_fl", "pcnt_area > 20")
     log_obj.info("Hazard Area Creation - Merging slope grids and landslide".format())
     merge = arcpy.Merge_management([grid_fl, config.landslide_hazard_copy], r"in_memory\merge")
@@ -45,6 +52,7 @@ def make_hazard_area(slope_input, output_gdb):
     log_obj.info("Hazard Area Creation - Cleanup".format())
     arcpy.DeleteField_management(config.grid_100ft_COP_copy, "pcnt_area")
     log_obj.info("Hazard Area Creation - Process Complete - output to {}".format(output_gdb))
+
 
 def create_setback(output_gdb, setback_distance):
     log_obj.info("Setback Area Creation - Process Started - using {} and {}' setback".format(output_gdb,
