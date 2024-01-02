@@ -92,7 +92,7 @@ def create_setback(output_gdb, setback_distance):
 
     # raster calc - limit flow length to setback distance
     log_obj.info("Setback Area Creation - Applying {}' setback".format(setback_distance))
-    flow_length_with_setback = arcpy.sa.SetNull(flow_length, flow_length, "VALUE>={}".format(setback_distance))
+    flow_length_with_setback = arcpy.sa.SetNull(flow_length, flow_length, "VALUE>{}".format(setback_distance))
 
     # int
     log_obj.info("Setback Area Creation - Converting result to Int type".format())
