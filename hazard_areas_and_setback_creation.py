@@ -8,6 +8,7 @@ arcpy.env.overwriteOutput = True
 
 log_obj = utility.Logger(config.log_file)
 
+
 def make_hazard_area(slope):  # slope = eg 20, 25 etc
 
     slope_input = config.slope_source_dict[slope][0]
@@ -52,7 +53,7 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
                                              '',
                                              "MULTI_PART")
     log_obj.info("Hazard Area Creation - Converting to Raster".format())
-    arcpy.FeatureToRaster_conversion(diss_hazards, 'OID',
+    arcpy.FeatureToRaster_conversion(diss_hazards, 'OBJECTID',
                                      os.path.join(output_gdb, "landslide_slope_raster"), 5)
     log_obj.info("Hazard Area Creation - Cleanup".format())
     arcpy.DeleteField_management(config.grid_100ft_COP_copy, "pcnt_area")
@@ -60,7 +61,7 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
 
 
 def create_setback(output_gdb, setback_distance):
-    log_obj.info("Setback Area Creation - Process Started - using {} and {}' setback".format(output_gdb,
+    log_obj.info("Setback Area Creation - Process Started - using {} as input and {}' setback".format(output_gdb,
                                                                                              setback_distance))
     arcpy.CheckOutExtension("Spatial")
 
@@ -91,7 +92,7 @@ def create_setback(output_gdb, setback_distance):
 
     # raster calc - limit flow length to setback distance
     log_obj.info("Setback Area Creation - Applying {}' setback".format(setback_distance))
-    flow_length_with_setback = arcpy.sa.SetNull(flow_length, flow_length, "VALUE>100")
+    flow_length_with_setback = arcpy.sa.SetNull(flow_length, flow_length, "VALUE>={}".format(setback_distance))
 
     # int
     log_obj.info("Setback Area Creation - Converting result to Int type".format())
