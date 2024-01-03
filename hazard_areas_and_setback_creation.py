@@ -18,30 +18,30 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
     log_obj.info("Hazard Area Creation - Process Started - using {}".format(slope_input))
     log_obj.info("Hazard Area Creation - Intersecting".format())
     sect = arcpy.Intersect_analysis([slope_input,
-                                     config.grid_100ft_COP_copy],
+                                     config.grid_100ft_BPS_copy],
                                     r"in_memory\sect")
     log_obj.info("Hazard Area Creation - Dissolving".format())
-    diss = arcpy.Dissolve_management(sect, r"in_memory\diss", "Description", '', 'MULTI_PART')
+    diss = arcpy.Dissolve_management(sect, r"in_memory\diss", "PageNumber", '', 'MULTI_PART')
     log_obj.info("Hazard Area Creation - Adding fields".format())
     arcpy.AddGeometryAttributes_management(diss, "AREA", "", "SQUARE_FEET_US", 2913) # adds POLY_AREA field
     arcpy.AddField_management(diss, "pcnt_area", "DOUBLE")
-    arcpy.AddField_management(config.grid_100ft_COP_copy, "pcnt_area", "DOUBLE")
+    arcpy.AddField_management(config.grid_100ft_BPS_copy, "pcnt_area", "DOUBLE")
     log_obj.info("Hazard Area Creation - Calcing pcnt_area".format())
     utility.calculate_pcnt_area_field(diss) # calc pcnt_area on the dissolved features, then transfer value to grid
     utility.get_and_assign_field_value_from_dict(diss,
-                                                 'Description',
+                                                 'PageNumber',
                                                  'pcnt_area',
-                                                 config.grid_100ft_COP_copy,
-                                                 'Description',
+                                                 config.grid_100ft_BPS_copy,
+                                                 'PageNumber',
                                                  'pcnt_area')
 
     # output for QC - not required for process
     name = "grid_for_" + os.path.basename(str(slope_input))
     fullname = os.path.join(output_gdb, name)
-    arcpy.CopyFeatures_management(config.grid_100ft_COP_copy, fullname)
+    arcpy.CopyFeatures_management(config.grid_100ft_BPS_copy, fullname)
 
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
-    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_COP_copy,
+    grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_BPS_copy,
                                                 r"in_memory\grid_fl",
                                                 "pcnt_area > {}".format(slope))
     log_obj.info("Hazard Area Creation - Merging slope grids and landslide".format())
@@ -56,7 +56,7 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
     arcpy.FeatureToRaster_conversion(diss_hazards, 'OBJECTID',
                                      os.path.join(output_gdb, "landslide_slope_raster"), 5)
     log_obj.info("Hazard Area Creation - Cleanup".format())
-    arcpy.DeleteField_management(config.grid_100ft_COP_copy, "pcnt_area")
+    arcpy.DeleteField_management(config.grid_100ft_BPS_copy, "pcnt_area")
     log_obj.info("Hazard Area Creation - Process Complete - output to {}".format(output_gdb))
 
 
@@ -115,13 +115,13 @@ try:
     # uncomment and run them all if you want a full refresh
     # per Henry (12/20/23) the result using 25% slope input with a 100' setback is the main product
 
-    #make_hazard_area(20)
     make_hazard_area(25)
-
-    #create_setback(config.output_20pcnt_gdb, 100)
-    #create_setback(config.output_25pcnt_gdb, 50)
-
     create_setback(config.output_25pcnt_gdb, 100)
+
+    # Ian LaVielle wants to see a run with >=50% slope and 100' setback
+    #make_hazard_area(50)
+    #create_setback(config.output_50pcnt_gdb, 100)
+
 
 except Exception as e:
     arcpy.ExecuteError()
