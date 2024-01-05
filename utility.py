@@ -47,6 +47,8 @@ def assign_field_value_from_dict(input_dict, target, target_key_field, target_fi
         for row in cursor:
             if row[0] in input_dict.keys():
                 row[1] = input_dict[row[0]]
+            else:
+                row[1] = 0
             cursor.updateRow(row)
 
 

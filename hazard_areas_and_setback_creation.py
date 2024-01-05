@@ -8,6 +8,12 @@ arcpy.env.overwriteOutput = True
 
 log_obj = utility.Logger(config.log_file)
 
+### when running all methods (make_hazard_area and create_setback) the results will be:
+### - 'grid_for_slope_##pcnt_nowater_copy' = used for QC of slope % grid assignment - may not retain
+### - 'landslide_slope_raster' = result of make_hazard_area method, used as input to create_setback method
+### - 'landslide_slope_poly' = polygon version of landslide_slope_raster - displays faster then raster (display result #1)
+### - 'hazard_setback_###ft' = result of create_setback method (display result #2)
+
 
 def make_hazard_area(slope):  # slope = eg 20, 25 etc
 
@@ -36,14 +42,19 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
                                                  'pcnt_area')
 
     # output for QC - not required for process
-    name = "grid_for_" + os.path.basename(str(slope_input))
-    fullname = os.path.join(output_gdb, name)
-    arcpy.CopyFeatures_management(config.grid_100ft_BPS_copy, fullname)
+    # diss_name = "diss_for_" + os.path.basename(str(slope_input))
+    # diss_fullname = os.path.join(output_gdb, diss_name)
+    # arcpy.CopyFeatures_management(diss, diss_fullname)
+    #
+    # grid_name = "grid_for_" + os.path.basename(str(slope_input))
+    # grid_fullname = os.path.join(output_gdb, grid_name)
+    # arcpy.CopyFeatures_management(config.grid_100ft_BPS_copy, grid_fullname)
 
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
     grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_BPS_copy,
                                                 r"in_memory\grid_fl",
-                                                "pcnt_area > {}".format(slope))
+                                                "pcnt_area > {}".format(config.grid_generalization_pcnt))
+
     log_obj.info("Hazard Area Creation - Merging slope grids and landslide".format())
     merge = arcpy.Merge_management([grid_fl, config.landslide_hazard_copy], r"in_memory\merge")
     log_obj.info("Hazard Area Creation - Dissolving and saving poly result".format())
@@ -116,11 +127,11 @@ try:
     # per Henry (12/20/23) the result using 25% slope input with a 100' setback is the main product
 
     make_hazard_area(25)
-    create_setback(config.output_25pcnt_gdb, 100)
+    # create_setback(config.output_25pcnt_gdb, 100)
 
     # Ian LaVielle wants to see a run with >=50% slope and 100' setback
-    #make_hazard_area(50)
-    #create_setback(config.output_50pcnt_gdb, 100)
+    # make_hazard_area(50)
+    # create_setback(config.output_50pcnt_gdb, 100)
 
 
 except Exception as e:
