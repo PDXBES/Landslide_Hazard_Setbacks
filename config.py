@@ -22,6 +22,7 @@ slope_50pcnt_raw = r"\\besfile1\ISM_PROJECTS\Work_Orders\WO_10199_H_Stevens\inpu
 landslide_hazard_raw = os.path.join(input_gdb, "draft_regulatory_landslide_hazard_area")
 grid_100ft_COP_raw = os.path.join(input_gdb, "empty_grid_COP")
 grid_100ft_BPS_raw = os.path.join(input_gdb, "regLandslideHazGridIndex100x100_BPS")
+grid_100ft_BPS_raster = os.path.join(input_gdb, "regLandslideHazGrid_BPS_raster")
 flow_dir_BE_2019_raw = os.path.join(input_gdb, "flow_dir_BE_DEM2019") #need to recreate and repoint if we want it based on newer lidar
 
 #lidar_BE_DEM = r"https://www.portlandmaps.com/arcgis/services/Public/COP_LiDAR_2019_1ft_BE_DEM_WS/ImageServer/Public/COP_LiDAR_2019_1ft_BE_DEM_WS"

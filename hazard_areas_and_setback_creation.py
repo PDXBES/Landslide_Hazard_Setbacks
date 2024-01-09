@@ -45,10 +45,11 @@ def make_hazard_area(slope):  # slope = eg 20, 25 etc
     # diss_name = "diss_for_" + os.path.basename(str(slope_input))
     # diss_fullname = os.path.join(output_gdb, diss_name)
     # arcpy.CopyFeatures_management(diss, diss_fullname)
-    #
-    # grid_name = "grid_for_" + os.path.basename(str(slope_input))
-    # grid_fullname = os.path.join(output_gdb, grid_name)
-    # arcpy.CopyFeatures_management(config.grid_100ft_BPS_copy, grid_fullname)
+
+    # output for QC - not required for process
+    grid_name = "grid_for_" + os.path.basename(str(slope_input))
+    grid_fullname = os.path.join(output_gdb, grid_name)
+    arcpy.CopyFeatures_management(config.grid_100ft_BPS_copy, grid_fullname)
 
     log_obj.info("Hazard Area Creation - Subsettings slope grids".format())
     grid_fl = arcpy.MakeFeatureLayer_management(config.grid_100ft_BPS_copy,
@@ -77,12 +78,13 @@ def create_setback(output_gdb, setback_distance):
     arcpy.CheckOutExtension("Spatial")
 
     log_obj.info("Setback Area Creation - Setting environment variables".format())
-    arcpy.env.workspace = r"C:\temp_work\working.gdb"
+    arcpy.env.workspace = r"C:\temp_work\working.gdb"  # fragile
     arcpy.env.extent = config.flow_dir_BE_2019_raster
-    arcpy.env.snapRaster = config.flow_dir_BE_2019_raster
+    # arcpy.env.snapRaster = config.flow_dir_BE_2019_raster
+    arcpy.env.snapRaster = config.grid_100ft_BPS_raster
     arcpy.env.cellSize = 5
 
-    # run watershed with hazard input + bare earth DEM: takes about 25 min
+    # run watershed with hazard input + bare earth DEM
     log_obj.info("Setback Area Creation - Running Watershed".format())
     wshed_result = arcpy.sa.Watershed(config.flow_dir_BE_2019_raw, os.path.join(output_gdb, "landslide_slope_raster"))
     #wshed = wshed_result.save(r"in_memory\wshed")
@@ -97,7 +99,7 @@ def create_setback(output_gdb, setback_distance):
     log_obj.info("Setback Area Creation - Subsetting flow direction to the upstream watershed areas".format())
     upstream_flow_dir = arcpy.sa.SetNull(arcpy.sa.IsNull(wshed_upstream_only), config.flow_dir_BE_2019_raster)
 
-    # flow length: takes the longest - between 12 and 4 hours depending on input raster
+    # flow length: takes the longest
     log_obj.info("Setback Area Creation - Running Flow Length".format())
     flow_length = arcpy.sa.FlowLength(upstream_flow_dir, "DOWNSTREAM")
 
@@ -126,12 +128,12 @@ try:
     # uncomment and run them all if you want a full refresh
     # per Henry (12/20/23) the result using 25% slope input with a 100' setback is the main product
 
-    make_hazard_area(25)
+    # make_hazard_area(25)
     # create_setback(config.output_25pcnt_gdb, 100)
 
     # Ian LaVielle wants to see a run with >=50% slope and 100' setback
-    # make_hazard_area(50)
-    # create_setback(config.output_50pcnt_gdb, 100)
+    make_hazard_area(50)
+    create_setback(config.output_50pcnt_gdb, 100)
 
 
 except Exception as e:
